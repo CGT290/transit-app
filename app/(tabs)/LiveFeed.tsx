@@ -50,7 +50,6 @@ return (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-
   },
   HeadingText:{
     alignSelf: 'center',
@@ -58,7 +57,6 @@ const styles = StyleSheet.create({
     marginTop: 15,
     fontSize: 25,
     marginBottom: 25,
-
   },
   feedContainer:{
     maxHeight: 550,
@@ -68,7 +66,6 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgb(245,245,245)', //keep this planning to change background color soon
     marginTop: 15,
     marginHorizontal: 11,
-    
   },
   smallerContainer:{
     marginTop: 8,
@@ -77,7 +74,6 @@ const styles = StyleSheet.create({
     padding: 2,
     borderRadius: 8,
     marginHorizontal: 10,
-
   },
   textStyle:{
     fontSize: 12,

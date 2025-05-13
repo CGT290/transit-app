@@ -1,31 +1,22 @@
-import { Text, View, ScrollView, TextInput, StyleSheet, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, TouchableOpacity} from "react-native";
+// app/tabs/index.tsx
+import { Text, View, ScrollView, TextInput, StyleSheet, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, TouchableOpacity, Alert } from "react-native";
 import AntDesign from '@expo/vector-icons/AntDesign';
-
 import { useState } from "react";
-
-//Keep Link hook for when i want to work on the not found page
-import { useRouter, Link } from "expo-router";
-
-
+import { useFavorites } from "./FavoritesContext"; // Import global favorites context
 
 export default function Index({}) {
   const [text, setText] = useState("");
-  //const [favorites] = useState([]); //State for managing an array of favorites
-  const router = useRouter();
+  const { addFavorite } = useFavorites(); // Access the global addFavorite function
 
-function favoritesIconClick() {
-  //text.trim() removes leading space and also make sure its not an empty string
-  if (text.trim()) { //Additional statement (!) to ensure no duplicate
-    router.push({
-       pathname: "/Favorites",
-        params: { new_Favorites: text.trim() },
-       });
-    setText(""); //To clear the input after favorites icon has been clicked
-  }
-}
-console.log("Navigating to Favorites with params:", {
-  new_Favorites: text.trim(),
-});
+  const favoritesIconClick = () => {
+    if (text.trim()) { // Ensure input is not empty
+      const added = addFavorite(text.trim()); // Add to favorites, check for duplicates
+      if (!added) {
+        Alert.alert("Duplicate", "This item is already in your favorites list.");
+      }
+      setText(""); // Clear the input field
+    }
+  };
 
   return (
     <KeyboardAvoidingView style={styles.container}>
@@ -69,16 +60,13 @@ console.log("Navigating to Favorites with params:", {
        
        </View>
       </View>
-
-
-  
-
       
       </ScrollView>
     </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 }
+
 
 const styles = StyleSheet.create({
   inputWithIcon:{
@@ -203,5 +191,3 @@ const styles = StyleSheet.create({
   },
 
 });
-
-
