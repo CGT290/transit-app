@@ -8,9 +8,11 @@ export default function LiveFeed(){
 useEffect(() => {
   const fetchTWEETS = async () => {
     try {
-      const res = await fetch('http://localhost:3000/fetched-tweets');
+      console.log('Fetching tweets...');
+      const res = await fetch('http://10.0.2.2:4000/static-tweets'); // this is the default android emulator address for localhost, for physical devices its the ip address of the computer running the server
+      console.log('Response:', res.status); // debugging to check the response status
       const data = await res.json();
-      console.log(data);
+      console.log('Fetched tweets:', data); // debugging to check the data and its structure
       setTweets(data); // If we want to update the tweets state with fetched data
     } catch (error) {
       console.log('Got error while fetching tweets', error);
@@ -36,9 +38,7 @@ return (
         {tweets.map((tweet, index) => (
           <View key={index} style={styles.smallerContainer}>
             <Text style={styles.textStyle}>{tweet.text}</Text>
-            <Text style={styles.textStyle}>
-              Likes: {tweet.public_metrics.like_count} | Retweets: {tweet.public_metrics.retweet_count}
-            </Text>
+            <Text style={styles.timePostedStyle}>Posted at: {tweet.formattedDate}</Text>
           </View>
         ))}
       </ScrollView>
@@ -50,37 +50,49 @@ return (
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+
   },
   HeadingText:{
     alignSelf: 'center',
     fontWeight: 'bold',
     marginTop: 15,
     fontSize: 25,
-    marginBottom: 25,
+    marginBottom: 5,
+
   },
   feedContainer:{
-    maxHeight: 550,
+    maxHeight: 700,
     flexDirection: 'column', //to adjust the content(text in this case) to be top-bottom
-    borderWidth: 2,
+   // borderWidth: 0, keep this commented this is to make the border visible for testing purposes
     borderRadius: 5,
-    backgroundColor: 'rgb(245,245,245)', //keep this planning to change background color soon
-    marginTop: 15,
+    marginTop: 0,
     marginHorizontal: 11,
+    
   },
   smallerContainer:{
     marginTop: 8,
     marginBottom: 8,
-    borderWidth: 1,
-    padding: 2,
+   // borderWidth: 0, keep this commented this is to make the border visible for testing purposes
+    padding: 3,
     borderRadius: 8,
     marginHorizontal: 10,
-  },
-  textStyle:{
-    fontSize: 12,
-  },
-  scrollContents:{
-    alignContent: 'center',
+    //backgroundColor: 'white',
 
   },
+  textStyle:{
+    fontSize: 11,
+    borderWidth: 1,
+    padding: 5,
+    borderRadius: 5,
+    marginBottom: 5,
+    backgroundColor: 'white',
+  },
+
+  timePostedStyle:{
+    fontSize: 9,
+    backgroundColor: 'white',
+    
+
+  }
 });
 
