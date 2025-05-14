@@ -1,0 +1,177 @@
+What specific parts of the raw means:
+
+DestinationName: Indicate where the bus is heading towards
+
+PublishedLineName: Represent the name of the bus route (Example: B6, B11, ...etc)
+
+PresentableDistance: Its the distance between the current position of the bus and the next scheduled stop(or call point), Example: "3 stops away or 3.2 miles away"
+
+StopPointName: The name of the bus stop or call point where the bus is scheduled to stop.
+Ex: "4th ave & 9th street" is a particular bus stop that the bus is scheduled to stop
+
+ExpectedArrivalTime: An estimation of when the a bus will arrive at a specific stop
+
+
+
+
+Raw API Data: [
+  {
+    "MonitoredVehicleJourney": {
+      "LineRef": "MTA NYCT_B1",
+      "DirectionRef": "0",
+      "FramedVehicleJourneyRef": {
+        "DataFrameRef": "2025-05-05",
+        "DatedVehicleJourneyRef": "MTA NYCT_UP_B5-Weekday-SDon-052200_B1_10"
+      },
+      "JourneyPatternRef": "MTA_B10026",
+      "PublishedLineName": "B1",
+      "OperatorRef": "MTA NYCT",
+      "OriginRef": "MTA_300000",
+      "DestinationName": "BAY RIDGE 4 AV",
+      "OriginAimedDepartureTime": "2025-05-05T08:42:00.000-04:00",
+      "SituationRef": [
+        {
+          "SituationSimpleRef": "MTA NYCT_UP_B5-Weekday-SDon-045500_B1_20"
+        }
+      ],
+      "Monitored": true,
+      "VehicleLocation": {
+        "Longitude": -73.947607,
+        "Latitude": 40.577379
+      },
+      "Bearing": 6.915296,
+      "ProgressRate": "normalProgress",
+      "ProgressStatus": "prevTrip",
+      "BlockRef": "MTA NYCT_UP_B5-Weekday-SDon_E_UP_22560_B1-10",
+      "VehicleRef": "MTA NYCT_4791",
+      "MonitoredCall": {
+        "AimedArrivalTime": "2025-05-05T08:42:00.000-04:00",
+        "ExpectedArrivalTime": "2025-05-05T08:42:00.000-04:00",
+        "AimedDepartureTime": "2025-05-05T08:42:00.000-04:00",
+        "ExpectedDepartureTime": "2025-05-05T08:42:00.000-04:00",
+        "Extensions": {
+          "Distances": {
+            "PresentableDistance": "1 stop away",
+            "DistanceFromCall": 714.42,
+            "StopsFromCall": 1,
+            "CallDistanceAlongRoute": 35.58
+          },
+          "VehicleFeatures": {
+            "StrollerVehicle": true
+          }
+        },
+        "StopPointRef": "MTA_300000",
+        "VisitNumber": 1,
+        "StopPointName": "ORIENTAL BLVD/MACKENZIE ST"
+      },
+      "OnwardCalls": {}
+    },
+    "RecordedAtTime": "2025-05-05T08:31:20.000-04:00"
+  },
+  {
+    "MonitoredVehicleJourney": {
+      "LineRef": "MTA NYCT_B1",
+      "DirectionRef": "0",
+      "FramedVehicleJourneyRef": {
+        "DataFrameRef": "2025-05-05",
+        "DatedVehicleJourneyRef": "MTA NYCT_UP_B5-Weekday-SDon-053200_B1_12"
+      },
+      "JourneyPatternRef": "MTA_B10026",
+      "PublishedLineName": "B1",
+      "OperatorRef": "MTA NYCT",
+      "OriginRef": "MTA_300000",
+      "DestinationName": "BAY RIDGE 4 AV",
+      "OriginAimedDepartureTime": "2025-05-05T08:52:00.000-04:00",
+      "SituationRef": [
+        {
+          "SituationSimpleRef": "MTA NYCT_UP_B5-Weekday-SDon-045500_B1_20"
+        }
+      ],
+      "Monitored": true,
+      "VehicleLocation": {
+        "Longitude": -73.964382,
+        "Latitude": 40.576981
+      },
+      "Bearing": 11.920738,
+      "ProgressRate": "normalProgress",
+      "ProgressStatus": "prevTrip",
+      "BlockRef": "MTA NYCT_UP_B5-Weekday-SDon_E_UP_23040_B1-12",
+      "VehicleRef": "MTA NYCT_4793",
+      "MonitoredCall": {
+        "AimedArrivalTime": "2025-05-05T08:52:00.000-04:00",
+        "ExpectedArrivalTime": "2025-05-05T08:52:00.000-04:00",
+        "AimedDepartureTime": "2025-05-05T08:52:00.000-04:00",
+        "ExpectedDepartureTime": "2025-05-05T08:52:00.000-04:00",
+        "Extensions": {
+          "Distances": {
+            "PresentableDistance": "1.4 miles away",
+            "DistanceFromCall": 2244.24,
+            "StopsFromCall": 1,
+            "CallDistanceAlongRoute": 35.58
+          },
+          "VehicleFeatures": {
+            "StrollerVehicle": true
+          }
+        },
+        "StopPointRef": "MTA_300000",
+        "VisitNumber": 1,
+        "StopPointName": "ORIENTAL BLVD/MACKENZIE ST"
+      },
+      "OnwardCalls": {}
+    },
+    "RecordedAtTime": "2025-05-05T08:31:03.000-04:00"
+  },
+  {
+    "MonitoredVehicleJourney": {
+      "LineRef": "MTA NYCT_B1",
+      "DirectionRef": "0",
+      "FramedVehicleJourneyRef": {
+        "DataFrameRef": "2025-05-05",
+        "DatedVehicleJourneyRef": "MTA NYCT_UP_B5-Weekday-SDon-056200_B1_21"
+      },
+      "JourneyPatternRef": "MTA_B10026",
+      "PublishedLineName": "B1",
+      "OperatorRef": "MTA NYCT",
+      "OriginRef": "MTA_300000",
+      "DestinationName": "BAY RIDGE 4 AV",
+      "OriginAimedDepartureTime": "2025-05-05T09:22:00.000-04:00",
+      "SituationRef": [
+        {
+          "SituationSimpleRef": "MTA NYCT_UP_B5-Weekday-SDon-045500_B1_20"
+        }
+      ],
+      "Monitored": true,
+      "VehicleLocation": {
+        "Longitude": -73.999902,
+        "Latitude": 40.605597
+      },
+      "Bearing": 329.1534,
+      "ProgressRate": "normalProgress",
+      "ProgressStatus": "prevTrip",
+      "BlockRef": "MTA NYCT_UP_B5-Weekday-SDon_E_UP_28080_B1-21",
+      "VehicleRef": "MTA NYCT_4786",
+      "MonitoredCall": {
+        "AimedArrivalTime": "2025-05-05T09:22:00.000-04:00",
+        "ExpectedArrivalTime": "2025-05-05T09:22:00.000-04:00",
+        "AimedDepartureTime": "2025-05-05T09:22:00.000-04:00",
+        "ExpectedDepartureTime": "2025-05-05T09:22:00.000-04:00",
+        "Extensions": {
+          "Distances": {
+            "PresentableDistance": "4.8 miles away",
+            "DistanceFromCall": 7793.89,
+            "StopsFromCall": 1,
+            "CallDistanceAlongRoute": 35.58
+          },
+          "VehicleFeatures": {
+            "StrollerVehicle": true
+          }
+        },
+        "StopPointRef": "MTA_300000",
+        "VisitNumber": 1,
+        "StopPointName": "ORIENTAL BLVD/MACKENZIE ST"
+      },
+      "OnwardCalls": {}
+    },
+    "RecordedAtTime": "2025-05-05T08:30:38.000-04:00"
+  }
+]
