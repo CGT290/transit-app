@@ -49,6 +49,12 @@ Text.txt
 Logs.txt
 Useful.txt
 TransitServerExplained.txt
+TransitServer.js
 
 #config.js file
 config.js
+
+#Files used to generate the static gtfs to json for all stopID in NYC Boroughs, also the text file with all the stop.txt merged into one 
+merged_stops.txt
+getGTFS_Stops.js
+trainRawData.txt

@@ -87,10 +87,9 @@ app.get('/bus-info/destination/:destinationID', async (req, res) => {
             const MonitoredCall = vehicleJourney?.MonitoredCall || {};
 
             return {
-                stopID: MonitoredCall.StopPointName || "Unknown Stop",
+                SpecificStops: MonitoredCall.StopPointName || "Unknown Stop",
                 arrivalTime: MonitoredCall.ExpectedArrivalTime ? convertTimeToEDT12hr(MonitoredCall.ExpectedArrivalTime) : "Expected Arrival Time not available",
                 line: vehicleJourney.PublishedLineName || "Unknown Bus Route",
-                destination: MonitoredCall.DestinationDisplay || vehicleJourney.DestinationName || "Unknown Destination",
                 direction: vehicleJourney.DirectionRef || "Unknown",
                 vehiclePosition: {
                     latitude: vehicleJourney.VehicleLocation?.Latitude || "Unknown Latitude",
@@ -103,10 +102,9 @@ app.get('/bus-info/destination/:destinationID', async (req, res) => {
         const formattedData = busInfo.map(entry => {
             const vehiclePosition = JSON.stringify(entry.vehiclePosition);
             const lines = [
-                `BusStop: ${entry.stopID}`, //current stop its at
+                `BusStop: ${entry.SpecificStops}`, //current stop its at
                 `ArrivalTime: ${entry.arrivalTime}`, // Stores arrival time for buses heading towards users current destination
                 `BusLineName: ${entry.line}`, // Bus route name
-                `Destination: ${entry.destination}`, // Where the bus is headed
                 `Direction: ${entry.direction}`, // Direction ID (0 = away from city, 1 = towards city)
                 `CurrentBusLocation: ${vehiclePosition}`, // Current location of the bus
                 '-----------------',
@@ -200,37 +198,13 @@ app.get('/subway-arrival/:trainLines', async (req, res) => {
                        
             return stopTimeUpdates.map(update => {
                 const stopId = update.stopId || 'Unknown';
-                //None formated version of both times, later to be use for comparisons
-                const rawArrivalTime = update.arrival?.time ? parseInt(update.arrival.time) : null;
-                const departureRaw = update.departure?.time ? parseInt(update.departure.time) : null;
-
-                /*
-                  Certain stopIDs won't come with departure time as they might be the last stop for the train
-                
-                  ParseInt to convert string to number(base 10), it ensures that arrival.time is correctly parsed as a number
-                  and if its correct we then add X seconds to it, without this wild departure values like "6:50pm" when arrival time is 12am would be returned
- 
-                  X seconds will just be the value i can find on how long a trains usually stops at a stop for before moving to the next
-                */
-                  const departureTime = rawArrivalTime && departureRaw
-                      ? rawArrivalTime === departureRaw
-                          ? "QUICK STOP"
-                          : formatTimestamp(update.departure.time)
-                      : stopId === 'L29S'
-                          ? "End of the line"
-                          : update.arrival?.time
-                              ? formatTimestamp(parseInt(update.arrival.time, 10) + 30)
-                              : "UNKNOWN";
-         
                 const arrivalTime = formatTimestamp(update.arrival?.time);
-                
                 const routeId = tripUpdate.trip?.routeId || 'Unknown';
         
                 const lines = [
                     `RouteId: ${routeId}`, //Example: A, for the A train
                     `StopId: ${stopId}`,
                     `ArrivalTime: ${arrivalTime}`, //arrival time of the train at the stop
-                    `DepartureTime: ${departureTime}`, //departure time of the train from the stop
                     '------------------',
                 ]
                 return lines.join('\n'); 

@@ -1,0 +1,72 @@
+[
+  {
+    "SpecificStops": "13 AV/77 ST",
+    "arrivalTime": "07:11 AM",
+    "line": "B64",
+    "direction": "1",
+    "vehiclePosition": {
+      "latitude": 40.619847,
+      "longitude": -74.007878
+    }
+  },
+  {
+    "SpecificStops": "13 AV/77 ST",
+    "arrivalTime": "07:15 AM",
+    "line": "B64",
+    "direction": "1",
+    "vehiclePosition": {
+      "latitude": 40.625193,
+      "longitude": -74.006367
+    }
+  },
+  {
+    "SpecificStops": "13 AV/77 ST",
+    "arrivalTime": "07:27 AM",
+    "line": "B64",
+    "direction": "1",
+    "vehiclePosition": {
+      "latitude": 40.637509,
+      "longitude": -74.031788
+    }
+  },
+  {
+    "SpecificStops": "13 AV/77 ST",
+    "arrivalTime": "07:35 AM",
+    "line": "B64",
+    "direction": "1",
+    "vehiclePosition": {
+      "latitude": 40.637109,
+      "longitude": -74.036183
+    }
+  },
+  {
+    "SpecificStops": "13 AV/77 ST",
+    "arrivalTime": "07:47 AM",
+    "line": "B64",
+    "direction": "1",
+    "vehiclePosition": {
+      "latitude": 40.633729,
+      "longitude": -74.021566
+    }
+  },
+  {
+    "SpecificStops": "13 AV/77 ST",
+    "arrivalTime": "07:55 AM",
+    "line": "B64",
+    "direction": "1",
+    "vehiclePosition": {
+      "latitude": 40.616308,
+      "longitude": -74.011564
+    }
+  },
+  {
+    "SpecificStops": "13 AV/77 ST",
+    "arrivalTime": "Expected Arrival Time not available",
+    "line": "B64",
+    "direction": "1",
+    "vehiclePosition": {
+      "latitude": 40.597126,
+      "longitude": -73.995294
+    }
+  }
+]
