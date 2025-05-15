@@ -1,5 +1,5 @@
-const express = require('express');
 require('dotenv').config(); 
+const express = require('express');
 const cors = require('cors');
 const axios = require('axios');
 const fs = require('fs');
@@ -10,6 +10,8 @@ app.use(cors());
 const PORT = 3500; 
 
 const API_KEY = process.env.MTA_BUS_TIME_API_KEY;
+const gMapKEY = process.env.Cloud_KEY;
+
 
 function  convertTimeToEDT12hr(time){
     if(!time){
@@ -20,14 +22,12 @@ function  convertTimeToEDT12hr(time){
     return date.toLocaleString('en-US', option);
 }
 
-
 const stopsFile = path.join(__dirname, 'stops.json'); // to p
-
-
 let stops = [];
+
 try{
     stops = JSON.parse(fs.readFileSync(stopsFile, 'utf-8'));
-    console.log(`Loaded ${stops.length} stops form ${stopsFile}`);
+   // console.log(`Loaded ${stops.length} stops form ${stopsFile}`);
     if(!stops.length){
         console.error("No stops loaded! check stops.json exist and is a valid JSON ")
     }
@@ -49,6 +49,59 @@ function haversineDistanceBetweenPoints(lat1, lon1, lat2, lon2) {
   return d;
 }
 
+//curl http://localhost:3500/geolocate, accuracy value holds the estimated error in meters calculation. accuracy: 1991.8 means its ~2km off the range its trying to get
+app.get('/geolocate', async (req, res) => {
+  const url = `https://www.googleapis.com/geolocation/v1/geolocate?key=${gMapKEY}`;
+  try {
+    const geoLocRes = await axios.post(url,
+      {considerIp: true}
+    );
+    res.json(geoLocRes.data);
+  } catch (error) {
+    console.error('Geolocate error: ', error.response?.data || error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+//curl "http://localhost:3500/geocode?address=1600+Pennsylvania+Ave+NW",
+app.get('/geocode', async (req, res) => {
+  const { address } = req.query;
+
+  if (!address) {
+    return res.status(400).json({ error: 'please input a proper address' });
+  }
+
+  const url = `https://maps.googleapis.com/maps/api/geocode/json`;
+
+  try {
+    const gC_res = await axios.get(url, {
+      params: {
+        address,
+        key: gMapKEY
+      }
+    });
+
+    const firstResult = gC_res.data.results?.[0];
+
+    if(!firstResult){
+      return res.status(404).json({error: "first result NOT FOUND"});
+    }
+
+    return res.json({
+      lat: firstResult.geometry.location.lat,
+      lng : firstResult.geometry.location.lng,
+      formatted: firstResult.formatted_address  //this formats the address to include street number , route, city, and state. 120 4TH AV, New York, NY
+    });
+  } catch (error) {
+    if (error.response?.data) {
+   return res
+     .status(error.response.status || 500)
+    .json(error.response.data);
+  }
+  return res.status(500).json({ error: error.message });
+}
+});
+
 // curl "http://localhost:3500/bus-info/nearby?latitude={latitudeNum}&longitude={longititudeNum}", example:  curl "http://localhost:3500/bus-info/nearby?latitude=40.578033&longitude=-73.939932"
 app.get('/bus-info/nearby', async (req, res) => {
     //radius value holds the distance of stops to look for based on users location. radius = 300, stops within 300 meters. 230-237 meters is the supposive avg distance between bus stops in NYC
@@ -60,7 +113,6 @@ app.get('/bus-info/nearby', async (req, res) => {
     return res.status(400).json({ error: 'Need valid lat & lon' });
   }
 
-  // Find nearest stops
   const nearbyStops = stops
     .map(stop => ({
       ...stop,
@@ -87,11 +139,11 @@ app.get('/bus-info/nearby', async (req, res) => {
           key: API_KEY,
           MonitoringRef: stop.stop_id //MonitoringRef being the query param MTAs API expecting to identify stops
         }
-      }).catch(() => null)
+      }).catch(() => null) //to ensure tduring each request one bad data doesn't lead to the rest failing
     );
+    
     const responses = await Promise.all(requests);
 
-    // Flatten and shape
     const allBusLines = responses.flatMap((resp) => {
       const visits = resp.data?.Siri?.ServiceDelivery
         ?.StopMonitoringDelivery?.[0]
