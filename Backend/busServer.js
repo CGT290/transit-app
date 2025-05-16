@@ -4,16 +4,25 @@ const cors = require('cors');
 const axios = require('axios');
 const fs = require('fs');
 const path = require('path'); 
+const NodeGeocoder = require('node-geocoder');
 
 const app = express();
 app.use(cors()); 
+
 const PORT = 3500; 
 
 const API_KEY = process.env.MTA_BUS_TIME_API_KEY;
-const gMapKEY = process.env.Cloud_KEY;
+const gMapKEY = process.env.GOOGLE_API_KEY;
+//console.log(API_KEY);
+//console.log(gMapKEY);
+ const geoOptions = {
+  provider: 'google',
+  apiKey: gMapKEY,
+}
 
+const geocoder = NodeGeocoder(geoOptions);
 
-function  convertTimeToEDT12hr(time){
+function convertTimeToEDT12hr(time){
     if(!time){
         return "Unkown or Undefined time";
     }
@@ -68,43 +77,32 @@ app.get('/geocode', async (req, res) => {
   const { address } = req.query;
 
   if (!address) {
-    return res.status(400).json({ error: 'please input a proper address' });
+    return res.status(400).json({ error: 'Please provide an address' });
   }
-
-  const url = `https://maps.googleapis.com/maps/api/geocode/json`;
 
   try {
-    const gC_res = await axios.get(url, {
-      params: {
-        address,
-        key: gMapKEY
-      }
-    });
+    console.log('Geocode requested for: ', address);
+    const [result] = await geocoder.geocode(address);
+    console.log('Geocode results: ', result);
 
-    const firstResult = gC_res.data.results?.[0];
-
-    if(!firstResult){
-      return res.status(404).json({error: "first result NOT FOUND"});
+    if (!result) {
+      return res.status(404).json({ error: 'Address not found' });
     }
-
-    return res.json({
-      lat: firstResult.geometry.location.lat,
-      lng : firstResult.geometry.location.lng,
-      formatted: firstResult.formatted_address  //this formats the address to include street number , route, city, and state. 120 4TH AV, New York, NY
+    
+    res.json({
+      lat: result.latitude,
+      lng: result.longitude,
+      formatted: result.formattedAddress
     });
-  } catch (error) {
-    if (error.response?.data) {
-   return res
-     .status(error.response.status || 500)
-    .json(error.response.data);
+  } catch (err) {
+    console.error('Geocode error:', err);
+    res.status(500).json({ error: err.message });
   }
-  return res.status(500).json({ error: error.message });
-}
 });
 
 // curl "http://localhost:3500/bus-info/nearby?latitude={latitudeNum}&longitude={longititudeNum}", example:  curl "http://localhost:3500/bus-info/nearby?latitude=40.578033&longitude=-73.939932"
 app.get('/bus-info/nearby', async (req, res) => {
-    //radius value holds the distance of stops to look for based on users location. radius = 300, stops within 300 meters. 230-237 meters is the supposive avg distance between bus stops in NYC
+  //radius value holds the distance of stops to look for based on users location. radius = 300, stops within 300 meters. 230-237 meters is the supposive avg distance between bus stops in NYC
   const { latitude, longitude, radius = 400, maxStop = 5 } = req.query;
   const userLat  = parseFloat(latitude);
   const userLong = parseFloat(longitude);
@@ -116,7 +114,7 @@ app.get('/bus-info/nearby', async (req, res) => {
   const nearbyStops = stops
     .map(stop => ({
       ...stop,
-      distance: haversineDistanceBetweenPoints(
+        distance: haversineDistanceBetweenPoints(
         userLat, userLong,
         stop.stop_lat, stop.stop_lon
       )
@@ -125,14 +123,12 @@ app.get('/bus-info/nearby', async (req, res) => {
     .sort((a, b) => a.distance - b.distance) //sorts by nearest
     .slice(0, Number(maxStop)); //creates an array to hold values the first 5 items, these items being the stops
 
-
   if (nearbyStops.length === 0) {
     return res.status(200).json({ message: 'No nearby stops found' });
   }
 
   const url = 'https://bustime.mta.info/api/siri/stop-monitoring.json';
   try {
-  
     const requests = nearbyStops.map(stop =>
       axios.get(url, {
         params: {
@@ -143,7 +139,7 @@ app.get('/bus-info/nearby', async (req, res) => {
     );
     
     const responses = await Promise.all(requests);
-
+    //turn array for all visits into one
     const allBusLines = responses.flatMap((resp) => {
       const visits = resp.data?.Siri?.ServiceDelivery
         ?.StopMonitoringDelivery?.[0]
@@ -162,7 +158,7 @@ app.get('/bus-info/nearby', async (req, res) => {
           etaFormatted: convertTimeToEDT12hr(etaTime),
           route: journey.PublishedLineName || "Unknown Bus Route",
           direction: journey.DirectionRef || "Unknown",
-          stopsAway: call.Extensions?.Distances?.StopsFromCall || "Unknown stops away from current stopName", // 'X', the x is a number representing how many stops away it is from a particular stop_name
+          stopsAway: call.Extensions?.Distances?.StopsFromCall || "Unknown stops away from current stopName",
           vehiclePosition: {
             latitude:  journey.VehicleLocation?.Latitude,
             longitude: journey.VehicleLocation?.Longitude
@@ -174,14 +170,23 @@ app.get('/bus-info/nearby', async (req, res) => {
     const currentTime = Date.now();
     const newBuslines = allBusLines.filter(bus =>
       bus.etaTime && new Date(bus.etaTime).getTime() >= currentTime
-    )
-
+    );
 
     newBuslines.sort((a,b) =>
       new Date(a.etaTime).getTime() - new Date(b.etaTime).getTime()
     );
+    
+    const uniqueByRoute = [];
+    //This is just to ensure that it the entry for each route if they do share same times it guarantess that at least one entry for each route is shown.
+    const seenAlready = new Set();
+    for(const bus of newBuslines){
+      if(!seenAlready.has(bus.route)){
+        seenAlready.add(bus.route);
+        uniqueByRoute.push(bus);
+      }
+    }
 
-    const limit = newBuslines.slice(0, Number(maxStop));
+    const limit = uniqueByRoute.slice(0, Number(maxStop));
 
     res.json({
       currentLocation: { latitude: userLat, longitude: userLong },
@@ -197,5 +202,4 @@ app.get('/bus-info/nearby', async (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`Bus server is running on port ${PORT}`);
-    
-});
+});  

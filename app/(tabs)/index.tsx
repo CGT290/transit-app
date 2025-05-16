@@ -1,193 +1,181 @@
-// app/tabs/index.tsx
-import { Text, View, ScrollView, TextInput, StyleSheet, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, TouchableOpacity, Alert } from "react-native";
-import AntDesign from '@expo/vector-icons/AntDesign';
-import { useState } from "react";
-import { useFavorites } from "./FavoritesContext"; // Import global favorites context
 
-export default function Index({}) {
-  const [text, setText] = useState("");
-  const { addFavorite } = useFavorites(); // Access the global addFavorite function
+import { useState } from "react";
+//import * as Location from 'expo-location';             
+import {Text, View,ScrollView,TextInput, StyleSheet, TouchableOpacity, Alert, ActivityIndicator} from "react-native";
+import AntDesign from '@expo/vector-icons/AntDesign';
+import { useFavorites } from "./FavoritesContext"; // Import global favorites context
+import { LOCAL_IP } from "../../config";
+
+interface BusOption {
+  route: string;
+  etaFormatted: string;
+  stopsAway: number;
+}
+
+export default function Index() {
+  const [destinationText, setDestinationText] = useState<string>("");
+  const [buses, setBuses] = useState<BusOption[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const { addFavorite }  = useFavorites();
+
+  // to clear the old results when user types a new destination
+  const onDestinationChange = (TEXT: string) => {
+    setDestinationText(TEXT);
+    setBuses([]);
+  };
 
   const favoritesIconClick = () => {
-    if (text.trim()) { // Ensure input is not empty
-      const added = addFavorite(text.trim()); // Add to favorites, check for duplicates
+    if (destinationText.trim()) {
+      const added = addFavorite(destinationText.trim());
       if (!added) {
         Alert.alert("Duplicate", "This item is already in your favorites list.");
       }
-      setText(""); // Clear the input field
+      setDestinationText("");
     }
   };
 
+ const onSearch = async () => {
+  if (!destinationText.trim()) {
+    return Alert.alert("Enter a destination");
+  }
+  setLoading(true);
+  setBuses([]);
+
+  try {
+    console.log('Geocode requested for:', destinationText); //just to see check for the raw data that going to be geocoded
+
+    //Geocoded the typed destination via the busServer.js 
+    const geoRes = await fetch(
+      `http://${LOCAL_IP}:3500/geocode?address=${encodeURIComponent(
+        destinationText
+      )}`
+    );
+    const geoJson = await geoRes.json();
+
+    //to check the geocode results to see if the conversion is working
+    console.log('Geocode result:', geoJson);
+
+    if (!geoRes.ok) {
+      throw new Error(geoJson.error || "Geocode failed");
+    }
+    const { lat, lng } = geoJson;
+
+    // the coordinates im about to use to fetch buses
+    console.log(`Fetching buses around: ${lat}, ${lng}`);
+
+    // to Fetch up to 5 nearby buses around those geocoded coordinates
+    const url =
+      `http://${LOCAL_IP}:3500/bus-info/nearby` +
+      `?latitude=${lat}` +
+      `&longitude=${lng}` +
+      `&maxStop=5`;
+    const resp = await fetch(url);
+    const json = await resp.json();
+
+   
+    console.log('Bus-info returned:', json);
+
+    if (!resp.ok) {
+      throw new Error(json.error || "Lookup failed");
+    }
+
+    if (!Array.isArray(json.buses) || json.buses.length === 0) {
+      setBuses([]);
+      return Alert.alert("No buses found at that location");
+    }
+
+    // to render route, etaFormat, and stops away 
+    setBuses(
+      json.buses.map((b: any) => ({
+        route: b.route,
+        etaFormatted: b.etaFormatted,
+        stopsAway: b.stopsAway,
+      }))
+    );
+  } catch (err: any) {
+    Alert.alert("Error", err.message);
+  } finally {
+    setLoading(false);
+  }
+};
+
   return (
-    <KeyboardAvoidingView style={styles.container}>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ScrollView contentContainerStyle={styles.scrollContainer} keyboardShouldPersistTaps="always"> 
-          <View style={styles.inputWithIcon}>
-            <TextInput style={styles.TextInput} 
-              placeholder="Enter Destination" 
-              onChangeText={setText} 
-              value={text} 
-              editable={true} 
-              keyboardType="default"
-            />
-           <TouchableOpacity onPress={favoritesIconClick} accessibilityLabel="Add to Favorites">
-            <AntDesign name="hearto" size={25} color="black" style={styles.FavoriteIcon} />
-           </TouchableOpacity>
-          </View>
+    <View style={styles.container}>
+      <View style={styles.inputRow}>
+        <TextInput
+          style={styles.input}
+          placeholder="Enter Destination"
+          value={destinationText}
+          onChangeText={onDestinationChange}
+        />
 
-          <View style={styles.TextContainer}>
-            <Text style={styles.optionText}>Options</Text>
-            <Text style={styles.departText}>Departs </Text>
-          </View>
-           
-           
-        <View style={styles.TransportOptions}>
-        {/* Wrapper for item and departure time */}
-        <View style={styles.itemWrapper}>
+        <TouchableOpacity onPress={favoritesIconClick} style={styles.iconBtn}>
+          <AntDesign name="hearto" size={24} color="black" />
+        </TouchableOpacity>
 
-        {/* itemsSymbols symbol for transport, where we'll style the train or bus symbols*/}
-        <View style={styles.itemContainer}>
-          <View style={styles.itemsSymbol}>
-            <Text style= {styles.symbolText}>B6</Text> 
-          </View>
-         <Text style = {styles.locationText}>Location: (someLocation)</Text> 
-        </View>
-
-  
-       <View style={styles.departureContainer}>
-        <Text>5 mins</Text> 
-       </View>
-       
-       </View>
+        <TouchableOpacity onPress={onSearch} style={styles.iconBtn}>
+          <AntDesign name="search1" size={24} color="black" />
+        </TouchableOpacity>
       </View>
-      
+
+      {loading && <ActivityIndicator style={{ marginTop: 20 }} />}
+
+      <ScrollView style={styles.results}>
+        {buses.map((b, i) => (
+          <View key={i} style={styles.resultItem}>
+            <Text style={styles.route}>{b.route}</Text>
+            <Text>
+            Arrives: {b.etaFormatted}                                       {b.stopsAway} stops away
+            </Text>
+          </View>
+        ))}
+
+        {!loading && buses.length === 0 && (
+          <Text style={styles.noResults}>No buses found.</Text>
+        )}
       </ScrollView>
-    </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+    </View>
   );
 }
 
-
 const styles = StyleSheet.create({
-  inputWithIcon:{
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f5f5f5' },
+
+  inputRow: {
     flexDirection: 'row',
-    alignSelf: 'center',
     alignItems: 'center',
     backgroundColor: 'white',
     borderRadius: 20,
     borderWidth: 1,
-    paddingHorizontal: 10,
-    marginTop: 20,
-    width: '90%',
-    height: 35,
-    
-  },
-  TextInput: {
-    flex: 1,
-    color: 'black',
-    paddingVertical: 0,
-    fontSize: 18,
-    backgroundColor: 'transparent',
+    height: 40,
+    paddingHorizontal: 10, },
 
-  },
-
-  container:{
+  input: { 
     flex: 1,
-    backgroundColor: 'rgb(245,245,245)',    //'rgb(10,30,50)' other option
-    alignContent: 'center',
-    
-    
-  },
-  scrollContainer:{
-    flexGrow: 1,// to make sure that our  scrollview  items are scrollable
-  },
+    fontSize: 16,
+    paddingVertical: 0  },
   
-  TextContainer:{
-    width: '98%', //adjusting the width between the 2 text
-    position: 'relative',
-    height: 50,
-    marginTop: 30,
-  },
-  optionText:{
-    color: 'rgb(0,0,128)',
-    marginTop: 30,
-    position: 'absolute',
-    left: 5,
-    fontSize: 25
-  },
+  iconBtn: { 
+    padding: 8,
+    marginLeft: 8 },
+ 
+  results: { marginTop: 20 },
 
-  departText:{
-    color: "rgb(0,0,128)",
-    marginTop: 30,
-    position: 'absolute',
-    right: 0,
-    fontSize: 25,
-  },
-  TransportOptions:{
-    flex: 0.9,
+  resultItem: {
     backgroundColor: 'white',
-    borderRadius: 5,
-    borderWidth: 0.8,
-    padding: 15,
-    marginTop: 20,
-    marginHorizontal: 15,
-  },
-  FavoriteIcon:{
-    right: 0,
-    marginLeft: 10,
-  },
-  //only needed when testing page not found link, DO NOT REMOVE
-  gotToFeed:{
-    fontSize: 15,
-    textAlign: 'center',
-    paddingTop: 15,
-    textDecorationLine: 'underline',
+    padding: 12,
+    borderRadius: 8,
+    marginBottom: 10, },
 
-  },
-  itemWrapper: {
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center', 
-    marginVertical: 8,
-  },
-  itemContainer: {
-    flexDirection: 'row', 
-    alignItems: 'center', // makes sure item (Location: (someLocation)) is centered 
-    padding: 7, // Space inside the container
-    borderWidth: 2,
-    borderRadius: 15,
-    flex: 1, // Allow itemContainer to grow and take up any available space
-    marginRight: 10, // Add space between itemContainer and departureContainer
-    
-  },
-  itemsSymbol: {
-    width: 25, // Circle diameter
-    height: 25, // To make the circle make sure its the same as width
-    borderRadius: 20, // Make it circular
-    borderWidth: 2, 
-    alignItems: 'center', //Same as justifyContent, push the item from left to the center
-    justifyContent: 'center', // To place the text B6 for example in the center of the container
-    backgroundColor: 'rgb(245,245,5)',
-    marginRight: 7, // To adjust the position of the location text next to the symbol
-  },
-  //to edit the text location
-  locationText: {
-    fontSize: 13.5, 
-    color: 'black',
+  route: {
     fontWeight: 'bold',
-  },
-  departureContainer: {
-    backgroundColor: 'rgb(245,245,245)', 
-    padding: 5, 
-    borderRadius: 15, // making the corners of the container rounder
-    borderWidth: 2,
-    borderColor: 'black',
-  },
+    marginBottom: 4 },
 
-  //to edit the text itemsSymbols
-  symbolText:{
-    fontSize: 10,
-    fontWeight:  'bold',
-  },
-
+  noResults: { 
+    textAlign: 'center',
+    color: 'red',
+    marginTop: 20 },
 });
