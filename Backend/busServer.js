@@ -171,15 +171,24 @@ app.get('/bus-info/nearby', async (req, res) => {
       });
     });
 
-    allBusLines.sort((a, b) =>
-      new Date(a.etaTime) - new Date(b.etaTime)
+    const currentTime = Date.now();
+    const newBuslines = allBusLines.filter(bus =>
+      bus.etaTime && new Date(bus.etaTime).getTime() >= currentTime
+    )
+
+
+    newBuslines.sort((a,b) =>
+      new Date(a.etaTime).getTime() - new Date(b.etaTime).getTime()
     );
+
+    const limit = newBuslines.slice(0, Number(maxStop));
 
     res.json({
       currentLocation: { latitude: userLat, longitude: userLong },
       nearbyStops,
-      buses: allBusLines
+      buses: limit
     });
+
   } catch (err) {
     console.error('Error fetching bus info:', err);
     res.status(500).json({ error: err.message });
