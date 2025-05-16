@@ -51,7 +51,7 @@ const fetchTweets = async () => {
 
 app.get('/fetched-tweets', (_, res) => {
     try {
-        console.log('Attempting to fetch tweets from:', __dirname + '/TweetFetch.json');
+        console.log('Attempting to fetch tweets from TweetFetch.json');
         const rawData = fs.readFileSync(__dirname + '/TweetFetch.json', 'utf8');
         const tweets = JSON.parse(rawData);
         res.status(200).json(tweets);
@@ -66,6 +66,6 @@ app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
     fetchTweets(); // Run immediately on server startup
 
-    setInterval(fetchTweets, 6 * 60 * 60 * 1000); // Fetch tweets every 6 hours
+    setInterval(fetchTweets,60 * 1000); // Fetch tweets minute
 });
 //curl http://localhost:3000/fetched-tweets

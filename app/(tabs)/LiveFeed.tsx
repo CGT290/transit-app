@@ -10,7 +10,7 @@ useEffect(() => {
   const fetchTWEETS = async () => {
     try {
       console.log('Fetching tweets...');
-      const res = await fetch(`http://${LOCAL_IP}:${PORT}/static-tweets`); // this is the default android emulator address for localhost, for physical devices its the ip address of the computer running the server
+      const res = await fetch(`http://${LOCAL_IP}:3000/fetched-tweets`); // this is the default android emulator address for localhost, for physical devices its the ip address of the computer running the server
       console.log('Response:', res.status); // debugging to check the response status
       const data = await res.json();
       console.log('Fetched tweets:', data); // debugging to check the data and its structure
