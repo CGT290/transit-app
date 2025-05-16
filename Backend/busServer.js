@@ -59,6 +59,7 @@ function haversineDistanceBetweenPoints(lat1, lon1, lat2, lon2) {
 }
 
 //curl http://localhost:3500/geolocate, accuracy value holds the estimated error in meters calculation. accuracy: 1991.8 means its ~2km off the range its trying to get
+// this to locate user current destiantion
 app.get('/geolocate', async (req, res) => {
   const url = `https://www.googleapis.com/geolocation/v1/geolocate?key=${gMapKEY}`;
   try {
@@ -73,6 +74,7 @@ app.get('/geolocate', async (req, res) => {
 });
 
 //curl "http://localhost:3500/geocode?address=1600+Pennsylvania+Ave+NW",
+// to convert address into lat and lon values
 app.get('/geocode', async (req, res) => {
   const { address } = req.query;
 
@@ -82,7 +84,7 @@ app.get('/geocode', async (req, res) => {
 
   try {
     console.log('Geocode requested for: ', address);
-    const [result] = await geocoder.geocode(address);
+    const [result] = await geocoder.geocode(address); //gecoding the address past
     console.log('Geocode results: ', result);
 
     if (!result) {
@@ -101,6 +103,7 @@ app.get('/geocode', async (req, res) => {
 });
 
 // curl "http://localhost:3500/bus-info/nearby?latitude={latitudeNum}&longitude={longititudeNum}", example:  curl "http://localhost:3500/bus-info/nearby?latitude=40.578033&longitude=-73.939932"
+//Purpose: Find nearest static GTFS stops with the set radius, Fetch the actual real time mta data for each stop. Finally it filters thems, groups them, sort them (by arrival), and limit amount displayed
 app.get('/bus-info/nearby', async (req, res) => {
   //radius value holds the distance of stops to look for based on users location. radius = 300, stops within 300 meters. 230-237 meters is the supposive avg distance between bus stops in NYC
   const { latitude, longitude, radius = 400, maxStop = 5 } = req.query;
