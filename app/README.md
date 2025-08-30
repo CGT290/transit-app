@@ -1,4 +1,4 @@
-[DEMO](https://youtu.be/ZpwaomCMhEE)
+
 
 A NYC Transit mobile application built with React Native expo to help users track public transit stops, view live arrival data, save their favorite locations, and receive recent news via tweets .
 
